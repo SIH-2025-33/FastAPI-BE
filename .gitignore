@@ -1,0 +1,29 @@
+# Byte-compiled / optimized / C extensions
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environments
+venv/
+env/
+*.venv
+
+# Environment Variables
+.env
+*.env
+
+# Databases
+*.db
+*.sqlite3
+
+# IDE and Editor Directories
+.idea/
+.vscode/
+
+# Generated Files & Logs
+*.log
+htmlcov/
+dist/
+build/
+*.egg-info/
