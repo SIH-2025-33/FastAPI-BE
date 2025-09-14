@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Annotated
 from sqlalchemy.orm import Session
+from sqlalchemy import select
 
 from database import get_database
 from models import User
@@ -11,10 +12,10 @@ db_dependency = Annotated[Session, Depends(get_database)]
 
 @router.patch("/increment_streak")
 def daily_streak(user_id: int, db: db_dependency):
-    user = db.query(User).filter(User.id == user_id).first()
+    stmt = select(User).where(User.id == user_id)
+    user = db.execute(stmt).scalars().first()
     user.streak += 1
     try:
-        db.add(user)
         db.commit()
         db.refresh(user)
     except Exception as e:
