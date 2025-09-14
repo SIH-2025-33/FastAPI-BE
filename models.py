@@ -23,8 +23,8 @@ class User(Base):
     consent_end_time = Column(Time, nullable=False)
     streak = Column(Integer, default=0)
 
-    trip = relationship("Trip", back_populates="user")
-    complaint = relationship("Complaint", back_populates="user")
+    trips = relationship("Trip", back_populates="user")
+    complaints = relationship("Complaint", back_populates="user")
 
 
 class TripMode(Base):
@@ -84,7 +84,7 @@ class Trip(Base):
     co_travellers = Column(Integer, default=0)
     is_verified_by_user = Column(Boolean, default=False)
 
-    user = relationship("User", back_populates="trip")
+    user = relationship("User", back_populates="trips")
     mode = relationship("TripMode", back_populates="trip")
     origin_location = relationship(
         "LocationPoints",
@@ -109,4 +109,4 @@ class Complaint(Base):
     timestamp = Column(DateTime, default=func.now())
     status = Column(String)
 
-    user = relationship("User", back_populates="complaint")
+    user = relationship("User", back_populates="complaints")
