@@ -23,9 +23,6 @@ def create_user(user: UserBase, db: db_dependency):
     try:
         db.add(db_user)
         db.commit()
-        print("=" * 85)
-        print("Commit was successfull.")
-        print("=" * 85)
         db.refresh(db_user)
 
         return {"user_id": db_user.id}
