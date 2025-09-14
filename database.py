@@ -16,4 +16,16 @@ engine = create_engine(url=db_url)
 SessionLocal = sessionmaker(autoflush=False, autocommit=False, bind=engine)
 Base = declarative_base()
 
+
+def get_database():
+    db = SessionLocal()
+    try:
+        yield db
+    except Exception as e:
+        print("Error:", e)
+        raise e
+    finally:
+        db.close()
+
+
 import models
