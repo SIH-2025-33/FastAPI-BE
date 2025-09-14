@@ -11,3 +11,12 @@ class UserBase(BaseModel):
     streak: Optional[int] = 0
 
     model_config = ConfigDict(from_attributes=True)
+
+class ComplaintBase(BaseModel):
+    user_id: int
+    location_lat: float
+    location_lon: float
+    description: str
+    category: str
+    timestamp: time
+    status: str
