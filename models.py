@@ -33,6 +33,41 @@ class TripMode(Base):
     mode_name = Column(String)
 
     trip = relationship("Trip", back_populates="mode")
+    estimated_routes = relationship("EstimatedRouteTime", back_populates="mode")
+
+
+class LocationPoints(Base):
+    __tablename__ = "location_points"
+    id = Column(Integer, primary_key=True, index=True)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    location_name = Column(String)
+
+    origin_trips = relationship(
+        "Trip",
+        foreign_keys="[Trip.origin_location_id]",
+        back_populates="origin_location",
+    )
+    destination_trips = relationship(
+        "Trip",
+        foreign_keys="[Trip.destination_location_id]",
+        back_populates="destination_location",
+    )
+
+
+class EstimatedRouteTime(Base):
+    __tablename__ = "estimated_route_time"
+    id = Column(Integer, primary_key=True, index=True)
+    origin_location_id = Column(Integer, ForeignKey("location_points.id"))
+    destination_location_id = Column(Integer, ForeignKey("location_points.id"))
+    mode_id = Column(Integer, ForeignKey("trip_mode.id"))
+    estimated_duration_minutes = Column(Float)
+
+    mode = relationship("TripMode", back_populates="estimated_routes")
+    origin_location = relationship("LocationPoints", foreign_keys=[origin_location_id])
+    destination_location = relationship(
+        "LocationPoints", foreign_keys=[destination_location_id]
+    )
 
 
 class Trip(Base):
@@ -41,10 +76,8 @@ class Trip(Base):
     user_id = Column(Integer, ForeignKey("user.id"))
     mode_id = Column(Integer, ForeignKey("trip_mode.id"))
     journey_id = Column(Integer, nullable=False)
-    origin_lat = Column(Float, nullable=False)
-    origin_lon = Column(Float, nullable=False)
-    destination_lat = Column(Float, nullable=False)
-    destination_lon = Column(Float, nullable=False)
+    origin_location_id = Column(Integer, ForeignKey("location_points.id"))
+    destination_location_id = Column(Integer, ForeignKey("location_points.id"))
     start_time = Column(DateTime, nullable=False)
     end_time = Column(DateTime, nullable=False)
     distance_travelled = Column(Float, nullable=False)
@@ -53,6 +86,16 @@ class Trip(Base):
 
     user = relationship("User", back_populates="trip")
     mode = relationship("TripMode", back_populates="trip")
+    origin_location = relationship(
+        "LocationPoints",
+        foreign_keys=[origin_location_id],
+        back_populates="origin_trips",
+    )
+    destination_location = relationship(
+        "LocationPoints",
+        foreign_keys=[destination_location_id],
+        back_populates="destination_trips",
+    )
 
 
 class Complaint(Base):
