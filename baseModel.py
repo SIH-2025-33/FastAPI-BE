@@ -20,3 +20,14 @@ class ComplaintBase(BaseModel):
     category: str
     timestamp: time
     status: str
+
+class TripRequestBase(BaseModel):
+    latitude: float
+    longitude: float
+    speed: float
+    timestamp: time
+
+
+class ModeResponseBase(BaseModel):
+    trip_id: id
+    mode_name: str
