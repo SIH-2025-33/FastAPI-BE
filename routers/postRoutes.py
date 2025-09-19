@@ -12,7 +12,7 @@ import math
 from database import get_database
 from baseModel import UserBase, ComplaintBase, TripRequestBase, ModeResponseBase
 from models import User, Complaint, Trip, LocationPoints, TripMode
-
+from Tools.helperMethods import get_location_name, distance_travelled
 load_dotenv()
 
 db_dependency = Annotated[Session, Depends(get_database)]
@@ -71,76 +71,6 @@ def travel_mode_interprter(tripsData: List[TripRequestBase]) -> dict:
         return json.loads(cleaned)
 
 
-def get_location_name(latitude: float, longitude: float) -> str:
-  
-    try:
-        url = "https://nominatim.openstreetmap.org/reverse"
-        params = {
-            "format": "json",
-            "lat": str(latitude),
-            "lon": str(longitude),
-            "zoom": 18,
-            "addressdetails": 1,
-            "accept-language": "en"
-        }
-        headers = {"User-Agent": USER_AGENT}
-        resp = requests.get(url, params=params, headers=headers, timeout=DEFAULT_TIMEOUT)
-
-        if resp.status_code != 200:
-            return "Unknown"
-
-        data = resp.json()
-        addr = data.get("address", {}) or {}
-        for key in ["neighbourhood", "suburb", "village", "town", "city", "county", "state", "country"]:
-            if addr.get(key):
-                return addr[key]
-        if data.get("display_name"):
-            parts = [p.strip() for p in data["display_name"].split(",")]
-            return ", ".join(parts[:3]) if parts else data["display_name"]
-
-        return "Unknown"
-    except Exception:
-        return "Unknown"
-def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    R = 6371.0088  # Earth radius in km
-    phi1, phi2 = math.radians(lat1), math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlambda = math.radians(lon2 - lon1)
-    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
-    return 2 * R * math.atan2(math.sqrt(a), math.sqrt(1 - a))
-
-def distance_travelled(
-    originLatitude: float,
-    originLongitude: float,
-    destLatitude: float,
-    destLongitude: float,
-) -> float:
-    """
-    Get driving distance from OSRM; if routing fails, fall back to great-circle distance (Haversine).
-    Returns distance in kilometers (float).
-    Signature unchanged.
-    """
-    try:
-        # Note: OSRM expects lon,lat ordering for coordinates
-        url = (
-            "http://router.project-osrm.org/route/v1/driving/"
-            f"{originLongitude},{originLatitude};{destLongitude},{destLatitude}"
-        )
-        params = {"overview": "false", "alternatives": "false", "steps": "false"}
-        headers = {"User-Agent": USER_AGENT}
-        resp = _retry_get(url, params=params, headers=headers, timeout=DEFAULT_TIMEOUT, max_attempts=3)
-        if resp and resp.status_code == 200:
-            data = resp.json()
-            routes = data.get("routes")
-            if routes and isinstance(routes, list) and len(routes) > 0:
-                distance_meters = routes[0].get("distance")
-                if distance_meters is not None:
-                    return float(distance_meters) / 1000.0
-        # fallback to haversine if OSRM failed or returned nothing meaningful
-        return haversine_km(originLatitude, originLongitude, destLatitude, destLongitude)
-    except Exception:
-        # safe fallback
-        return haversine_km(originLatitude, originLongitude, destLatitude, destLongitude)
 
 
 @router.post("/user")
