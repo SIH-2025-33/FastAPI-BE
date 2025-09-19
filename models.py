@@ -2,11 +2,9 @@ from sqlalchemy import (
     Column,
     Integer,
     String,
-    DateTime,
     Boolean,
     Float,
     ForeignKey,
-    Time,
     func,
 )
 from sqlalchemy.orm import relationship
@@ -19,8 +17,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     age = Column(Integer, nullable=False)
     gender = Column(String)
-    consent_start_time = Column(Time, nullable=False)
-    consent_end_time = Column(Time, nullable=False)
+    consent_start_time = Column(String, nullable=False)
+    consent_end_time = Column(String, nullable=False)
     streak = Column(Integer, default=0)
 
     trips = relationship("Trip", back_populates="user")
@@ -78,8 +76,8 @@ class Trip(Base):
     journey_id = Column(Integer, default=0)
     origin_location_id = Column(Integer, ForeignKey("location_points.id"))
     destination_location_id = Column(Integer, ForeignKey("location_points.id"))
-    start_time = Column(DateTime, nullable=False)
-    end_time = Column(DateTime, nullable=False)
+    start_time = Column(String, nullable=False)
+    end_time = Column(String, nullable=False)
     distance_travelled = Column(Float, nullable=False)
     co_travellers = Column(Integer, default=0)
     purpose = Column(String)
@@ -107,7 +105,7 @@ class Complaint(Base):
     location_lon = Column(Float, nullable=False)
     description = Column(String, nullable=False)
     category = Column(String)
-    timestamp = Column(DateTime, default=func.now())
+    timestamp = Column(String, default=func.now())
     status = Column(String)
 
     user = relationship("User", back_populates="complaints")
