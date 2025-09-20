@@ -102,6 +102,7 @@ class Journey(Base):
     destination = Column(String)
     purpose = Column(String)
     is_verified_by_user = Column(Boolean, default=False)
+    user_id = Column(Integer, ForeignKey("user.id"))
 
     trips = relationship("Trip", back_populates="trip_journey")
 
