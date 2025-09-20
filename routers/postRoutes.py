@@ -101,11 +101,6 @@ def add_trip(user_id: int, timestamp: str, db: db_dependency):
             ),
             user_id=user_id,
         )
-        print("=" * 68)
-        print(
-            trips[-1]["destination"]["latitude"], trips[-1]["destination"]["longitude"]
-        )
-        print("=" * 68)
         db.add(journey)
         db.commit()
         db.refresh(journey)
