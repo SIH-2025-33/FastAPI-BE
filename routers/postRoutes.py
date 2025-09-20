@@ -99,6 +99,7 @@ def add_trip(user_id: int, timestamp: str, db: db_dependency):
                 trips[-1]["destination"]["latitude"],
                 trips[-1]["destination"]["longitude"],
             ),
+            user_id=user_id,
         )
         print("=" * 68)
         print(
