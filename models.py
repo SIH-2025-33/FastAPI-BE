@@ -98,11 +98,11 @@ class Trip(Base):
 class Journey(Base):
     __tablename__ = "journey"
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
     origin = Column(String)
     destination = Column(String)
     purpose = Column(String)
     is_verified_by_user = Column(Boolean, default=False)
-    user_id = Column(Integer, ForeignKey("user.id"))
 
     trips = relationship("Trip", back_populates="trip_journey")
 
