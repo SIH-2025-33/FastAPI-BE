@@ -5,8 +5,6 @@ from typing import Optional
 class UserBase(BaseModel):
     age: int
     gender: str
-    consent_start_time: str
-    consent_end_time: str
     streak: Optional[int] = 0
 
     model_config = ConfigDict(from_attributes=True)
@@ -23,6 +21,7 @@ class ComplaintBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 class TripRequestBase(BaseModel):
+    user_id: int
     latitude: float
     longitude: float
     speed: float
@@ -31,8 +30,9 @@ class TripRequestBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class ModeResponseBase(BaseModel):
-    trip_id: int
-    mode_name: str
+class JourneyBase(BaseModel):
+    id: int
+    origin: str
+    destination: str
 
     model_config = ConfigDict(from_attributes=True)

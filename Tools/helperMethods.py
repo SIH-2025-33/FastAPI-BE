@@ -1,8 +1,20 @@
+import json
 import math
+import time
+from typing import Any, Dict, List, Optional
 import requests
+import os
+import google.generativeai as genai
+from dotenv import load_dotenv
+
+from baseModel import TripRequestBase
+from models import DataCollector
+
+load_dotenv()
 
 USER_AGENT = os.getenv("USER_AGENT", "MyApp/1.0 (email@example.com)")
 DEFAULT_TIMEOUT = 8.0
+genai.configure(api_key=os.getenv("GEMINI_API"))
 
 
 def get_location_name(latitude: float, longitude: float) -> str:
@@ -66,11 +78,7 @@ def distance_travelled(
     destLatitude: float,
     destLongitude: float,
 ) -> float:
-    """
-    Get driving distance from OSRM; if routing fails, fall back to great-circle distance (Haversine).
-    Returns distance in kilometers (float).
-    Signature unchanged.
-    """
+
     try:
         # Note: OSRM expects lon,lat ordering for coordinates
         url = (
@@ -113,7 +121,6 @@ def _retry_get(
     while attempt < max_attempts:
         try:
             resp = requests.get(url, params=params, headers=headers, timeout=timeout)
-            # return successful response (200) or a client error (so caller can inspect)
             if resp.status_code == 200 or (400 <= resp.status_code < 500):
                 return resp
         except requests.RequestException:
@@ -122,3 +129,70 @@ def _retry_get(
         time.sleep(backoff)
         backoff *= 2
     return None
+
+
+def travel_mode_interprter(tripsData: List[DataCollector]) -> dict:
+
+    system_prompt = """
+You are a transport mode classifier.
+
+Input: A chronological list of records, each with:
+- latitude (float)
+- longitude (float)
+- speed (float, in km/h)
+- timestamp (ISO 8601 format, e.g., "YYYY-MM-DDTHH:MM:SS")
+
+Your task:
+1. Analyze the records in time order.
+2. Group them into trip segments, each with a clear origin and destination:
+   - Origin = first record of the segment.
+   - Destination = last record of the segment.
+3. Classify the transport mode based on speed:
+   - 0-7 km/h → "WALKING"
+   - 8-25 km/h → "CYCLING"
+   - 26-60 km/h → "BUS"
+   - 61-120 km/h → "CAR"
+   - >120 km/h → "TRAIN" or "FLIGHT" depending on context.
+4. Segmentation rule:
+   - Form the longest possible continuous sequence where the average speed remains in the same range.
+   - Do not split segments of the same mode unless there is a clear change in speed range or a significant pause.
+5. Output format:
+   - Only valid JSON in this exact structure:
+
+[
+  {
+    "origin": {"latitude": <float>, "longitude": <float>, "timestamp": "<"YYYY-MM-DDTHH:MM:SS">"},
+    "destination": {"latitude": <float>, "longitude": <float>, "timestamp": "<"YYYY-MM-DDTHH:MM:SS">"},
+    "mode": "<string>"
+  },
+  ...
+]
+
+- Timestamps in output must only include the time component (`"YYYY-MM-DDTHH:MM:SS"`).
+- Do not include any text, explanations, or additional fields outside the specified JSON.
+"""
+
+    def to_dict(obj):
+        return {
+            "latitude": obj.latitude,
+            "longitude": obj.longitude,
+            "speed": obj.speed,
+            "timestamp": obj.timestamp,  # ISO format
+        }
+
+    model = genai.GenerativeModel("gemini-2.5-flash")
+    chat = model.start_chat()
+    chat.send_message(system_prompt)
+
+    user_input = json.dumps([to_dict(trip) for trip in tripsData], default=str)
+    resp = chat.send_message(user_input)
+
+    print("=" * 68)
+    print(resp.text.strip())
+    print("=" * 68)
+
+    text = resp.text.strip()
+    if "```json" in text:
+        text = text.split("```json")[-1].split("```")[0].strip()
+
+    return json.loads(text)

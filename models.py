@@ -3,6 +3,7 @@ from sqlalchemy import (
     Integer,
     String,
     Boolean,
+    DateTime,
     Float,
     ForeignKey,
     func,
@@ -17,8 +18,6 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     age = Column(Integer, nullable=False)
     gender = Column(String)
-    consent_start_time = Column(String, nullable=False)
-    consent_end_time = Column(String, nullable=False)
     streak = Column(Integer, default=0)
 
     trips = relationship("Trip", back_populates="user")
@@ -73,15 +72,13 @@ class Trip(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("user.id"))
     mode_id = Column(Integer, ForeignKey("trip_mode.id"))
-    journey_id = Column(Integer, default=0)
+    journey_id = Column(Integer, ForeignKey("journey.id", ondelete="CASCADE"))
     origin_location_id = Column(Integer, ForeignKey("location_points.id"))
     destination_location_id = Column(Integer, ForeignKey("location_points.id"))
-    start_time = Column(String, nullable=False)
-    end_time = Column(String, nullable=False)
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
     distance_travelled = Column(Float, nullable=False)
     co_travellers = Column(Integer, default=0)
-    purpose = Column(String)
-    is_verified_by_user = Column(Boolean, default=False)
 
     user = relationship("User", back_populates="trips")
     mode = relationship("TripMode", back_populates="trip")
@@ -95,6 +92,18 @@ class Trip(Base):
         foreign_keys=[destination_location_id],
         back_populates="destination_trips",
     )
+    trip_journey = relationship("Journey", back_populates="trips")
+
+
+class Journey(Base):
+    __tablename__ = "journey"
+    id = Column(Integer, primary_key=True, index=True)
+    origin = Column(String)
+    destination = Column(String)
+    purpose = Column(String)
+    is_verified_by_user = Column(Boolean, default=False)
+
+    trips = relationship("Trip", back_populates="trip_journey")
 
 
 class Complaint(Base):
@@ -105,7 +114,17 @@ class Complaint(Base):
     location_lon = Column(Float, nullable=False)
     description = Column(String, nullable=False)
     category = Column(String)
-    timestamp = Column(String, default=func.now())
+    timestamp = Column(DateTime, default=func.now())
     status = Column(String)
 
     user = relationship("User", back_populates="complaints")
+
+
+class DataCollector(Base):
+    __tablename__ = "data_collector"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("user.id"))
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
+    speed = Column(Float, nullable=False)
+    timestamp = Column(DateTime, default=func.now())
