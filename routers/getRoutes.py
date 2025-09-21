@@ -106,10 +106,8 @@ def get_user_distance_travelled(user_id: int, mode: str, db: db_dependency):
 def get_all_journeys(user_id: int, db: db_dependency):
     stmt = select(Journey).where(Journey.user_id == user_id)
     journeys = db.execute(stmt).scalars().all()
-    if not journeys:
-        return {"message": "No journeys found for the user"}
-
     list_of_journeys = []
+
     for journey in journeys:
         journey_data = JourneyBase(
             id=journey.id,
@@ -129,10 +127,8 @@ def get_all_journeys(user_id: int, db: db_dependency):
 def get_all_journeys_for_NATPAC(db: db_dependency):
     stmt = select(Journey)
     journeys = db.execute(stmt).scalars().all()
-    if not journeys:
-        return {"message": "No journeys found"}
-
     list_of_journeys = []
+
     for journey in journeys:
         journey_data = JourneyBase(
             id=journey.id,
@@ -152,9 +148,6 @@ def get_all_journeys_for_NATPAC(db: db_dependency):
 def get_all_trips(db: db_dependency):
     stmt = select(Trip)
     trips = db.execute(stmt).scalars().all()
-    if not trips:
-        return {"message": "No trips found"}
-
     natpac_responses = []
 
     for trip in trips:
@@ -196,8 +189,12 @@ def percentage_of_verified_trips(db: db_dependency):
     stmt = (
         select(func.count())
         .select_from(Trip)
-        .where(Trip.trip_journey.is_verified_by_user == True)
+        .join(Journey, Journey.id == Trip.journey_id)
+        .where(Journey.is_verified_by_user.is_((True)))
     )
     true_count = db.execute(stmt).scalar_one()
+
+    if total_count == 0:
+        return {"Percentage": 0.0}
 
     return {"Percentage": (true_count / total_count) * 100}
