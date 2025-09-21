@@ -100,6 +100,8 @@ def add_trip(user_id: int, timestamp: str, db: db_dependency):
                 trips[-1]["destination"]["longitude"],
             ),
             user_id=user_id,
+            start_time=trips[0]["origin"]["timestamp"],
+            end_time=trips[-1]["destination"]["timestamp"],
         )
         db.add(journey)
         db.commit()
@@ -152,7 +154,13 @@ def add_trip(user_id: int, timestamp: str, db: db_dependency):
             db.refresh(_trip)
 
         return JourneyBase(
-            id=journey.id, origin=journey.origin, destination=journey.destination
+            id=journey.id,
+            origin=journey.origin,
+            destination=journey.destination,
+            start_time=journey.start_time,
+            end_time=journey.end_time,
+            purpose=journey.purpose,
+            is_verified_by_user=journey.is_verified_by_user,
         )
 
     except Exception as e:

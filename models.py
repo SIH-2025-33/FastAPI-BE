@@ -102,6 +102,8 @@ class Journey(Base):
     origin = Column(String)
     destination = Column(String)
     purpose = Column(String)
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
     is_verified_by_user = Column(Boolean, default=False)
     
     trips = relationship("Trip", back_populates="trip_journey")

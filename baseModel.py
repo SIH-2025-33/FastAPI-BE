@@ -9,6 +9,7 @@ class UserBase(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
+
 class ComplaintBase(BaseModel):
     user_id: int
     location_lat: float
@@ -19,6 +20,7 @@ class ComplaintBase(BaseModel):
     status: str
 
     model_config = ConfigDict(from_attributes=True)
+
 
 class TripRequestBase(BaseModel):
     user_id: int
@@ -34,5 +36,12 @@ class JourneyBase(BaseModel):
     id: int
     origin: str
     destination: str
+    start_time: str
+    end_time: str
+    purpose: Optional[str] = None
+    is_verified_by_user: Optional[bool] = False
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class 
