@@ -1,45 +1,37 @@
 from logging.config import fileConfig
-
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
+import os
+from dotenv import load_dotenv
+from sqlalchemy import engine_from_config, pool
 from alembic import context
 
-from dotenv import load_dotenv
-import os
+from database import Base
 
+# Load environment variables from .env
 load_dotenv()
 
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST")
 DB_NAME = os.getenv("DB_NAME")
-db_url = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
+DB_PORT = os.getenv("DB_PORT", 5432)  # default PostgreSQL port
 
+# Construct the SQLAlchemy DB URL
+db_url = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
-
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+# Alembic Config object
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+# Override sqlalchemy.url in Alembic config with our env URL
+config.set_main_option("sqlalchemy.url", db_url)
+
+# Setup Python logging from the config file
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
-from database import Base
-
-# target_metadata = mymodel.Base.metadata
+# Import your SQLAlchemy models here
+# Ensure all models are imported so Alembic sees them
+# <- replace with your actual models module
 target_metadata = Base.metadata
-
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
-
-config.set_main_option("sqlalchemy.url", db_url)
 
 
 def run_migrations_offline() -> None:
