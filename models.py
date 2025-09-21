@@ -103,7 +103,7 @@ class Journey(Base):
     destination = Column(String)
     purpose = Column(String)
     is_verified_by_user = Column(Boolean, default=False)
-
+    
     trips = relationship("Trip", back_populates="trip_journey")
 
 
@@ -129,3 +129,4 @@ class DataCollector(Base):
     longitude = Column(Float, nullable=False)
     speed = Column(Float, nullable=False)
     timestamp = Column(DateTime, default=func.now())
+    is_used = Column(Boolean, default=False)
