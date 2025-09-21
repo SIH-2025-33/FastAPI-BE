@@ -21,8 +21,6 @@ CO2_FACTORS = {
 }
 
 
-
-
 @router.get("/emissions/{mode_name}")
 def calculate_emissions(user_id: int, mode_name: str, db: db_dependency):
     """Calculate CO2 emissions for a user's trips by mode"""
@@ -82,10 +80,6 @@ def calculate_emissions(user_id: int, mode_name: str, db: db_dependency):
         )
 
 
-db_dependency = Annotated[Session, Depends(get_database)]
-router = APIRouter(prefix="/read", tags=["read"])
-
-
 @router.get("/user/streak")
 def get_user_streak(user_id: int, db: db_dependency):
     stmt = select(User).where(User.id == user_id)
@@ -113,13 +107,12 @@ def get_all_journeys(user_id: int, db: db_dependency):
     stmt = select(Journey).where(Journey.user_id == user_id)
     journeys = db.execute(stmt).scalars().all()
     if not journeys:
-        return{"message":"No journeys found for the user"}
+        return {"message": "No journeys found for the user"}
+
     list_of_journeys = []
     for journey in journeys:
         journey_data = JourneyBase(
-            id=journey.id,
-            origin=journey.origin,
-            destination=journey.destination
+            id=journey.id, origin=journey.origin, destination=journey.destination
         )
         list_of_journeys.append(journey_data)
     return list_of_journeys
