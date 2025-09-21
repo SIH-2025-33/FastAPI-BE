@@ -164,7 +164,7 @@ def add_trip(user_id: int, timestamp: str, db: db_dependency):
 
 
 @router.post("/api_required_data")
-def create_api_required_data(tripData: List[TripRequestBase], db: db_dependency):
+def create_api_required_data(tripData: TripRequestBase, db: db_dependency):
     data = DataCollector(
         user_id=tripData.user_id,
         latitude=tripData.latitude,
