@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from typing import Annotated
+from typing import Annotated, List
 from sqlalchemy.orm import Session
 from sqlalchemy import select, and_
 
 from database import get_database
 from models import User, Trip, TripMode, Journey
-from baseModel import JourneyBase
+from baseModel import JourneyBase, NatpacResponseBase, LocationBase
 
 db_dependency = Annotated[Session, Depends(get_database)]
 router = APIRouter(prefix="/get", tags=["get"])
@@ -102,7 +102,7 @@ def get_user_distance_travelled(user_id: int, mode: str, db: db_dependency):
     return {"distance_travelled": total_distance_travelled}
 
 
-@router.get("/user/journey")
+@router.get("/user/journey", response_model=List[JourneyBase])
 def get_all_journeys(user_id: int, db: db_dependency):
     stmt = select(Journey).where(Journey.user_id == user_id)
     journeys = db.execute(stmt).scalars().all()
@@ -121,15 +121,16 @@ def get_all_journeys(user_id: int, db: db_dependency):
             is_verified_by_user=journey.is_verified_by_user,
         )
         list_of_journeys.append(journey_data)
+
     return list_of_journeys
 
 
-@router.get("/journey")
+@router.get("/journey", response_model=List[JourneyBase])
 def get_all_journeys_for_NATPAC(db: db_dependency):
     stmt = select(Journey)
     journeys = db.execute(stmt).scalars().all()
     if not journeys:
-        return {"message": "No journeys found for the user"}
+        return {"message": "No journeys found"}
 
     list_of_journeys = []
     for journey in journeys:
@@ -143,4 +144,48 @@ def get_all_journeys_for_NATPAC(db: db_dependency):
             is_verified_by_user=journey.is_verified_by_user,
         )
         list_of_journeys.append(journey_data)
+
     return list_of_journeys
+
+
+@router.get("/trips", response_model=List[NatpacResponseBase])
+def get_all_trips(db: db_dependency):
+    stmt = select(Trip)
+    trips = db.execute(stmt).scalars().all()
+    if not trips:
+        return {"message": "No trips found"}
+
+    natpac_responses = []
+
+    for trip in trips:
+        origin_base = LocationBase(
+            latitude=trip.origin_location.latitude,
+            longitude=trip.origin_location.longitude,
+            name=trip.origin_location.location_name,
+        )
+        dest_base = LocationBase(
+            latitude=trip.destination_location.latitude,
+            longitude=trip.destination_location.longitude,
+            name=trip.destination_location.location_name,
+        )
+
+        natpac = NatpacResponseBase(
+            trip_id=trip.id,
+            user_id=trip.user_id,
+            user_gender=trip.user.gender,
+            user_age=trip.user.age,
+            journey_id=trip.journey_id,
+            origin=origin_base,
+            destination=dest_base,
+            start_time=trip.start_time,
+            end_time=trip.end_time,
+            mode=trip.mode.mode_name,
+            distance_travelled=trip.distance_travelled,
+            co_travellers=trip.co_travellers,
+            is_verified_by_user=trip.is_verified_by_user,
+        )
+        natpac_responses.append(natpac)
+
+    return natpac_responses
+
+
