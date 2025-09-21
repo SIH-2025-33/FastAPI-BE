@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select
 
 from database import get_database
-from models import User,Journey
+from models import User, Journey
 
 
 router = APIRouter(prefix="/update", tags=["update"])
@@ -25,6 +25,8 @@ def daily_streak(user_id: int, db: db_dependency):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"An error occured: {str(e)}",
         )
+
+
 @router.patch("/verify_journey")
 def verify_journey(journey_id: int, db: db_dependency):
     """Update is_verified_by_user flag for all trips in a journey"""

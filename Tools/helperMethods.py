@@ -187,10 +187,6 @@ Your task:
     user_input = json.dumps([to_dict(trip) for trip in tripsData], default=str)
     resp = chat.send_message(user_input)
 
-    print("=" * 68)
-    print(resp.text.strip())
-    print("=" * 68)
-
     text = resp.text.strip()
     if "```json" in text:
         text = text.split("```json")[-1].split("```")[0].strip()

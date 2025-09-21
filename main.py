@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from routers import postRoutes, patchRoutes, getRoutes
+from routers import postRoutes, patchRoutes, getRoutes, deleteRoutes
 
 
 app = FastAPI()
@@ -19,3 +19,4 @@ app.add_middleware(
 app.include_router(router=postRoutes.router)
 app.include_router(router=patchRoutes.router)
 app.include_router(router=getRoutes.router)
+app.include_router(router=deleteRoutes.router)
