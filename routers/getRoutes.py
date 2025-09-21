@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from typing import Annotated, List
 from sqlalchemy.orm import Session
-from sqlalchemy import select, and_
+from sqlalchemy import select, and_, func
 
 from database import get_database
 from models import User, Trip, TripMode, Journey
@@ -182,10 +182,22 @@ def get_all_trips(db: db_dependency):
             mode=trip.mode.mode_name,
             distance_travelled=trip.distance_travelled,
             co_travellers=trip.co_travellers,
-            is_verified_by_user=trip.is_verified_by_user,
+            is_verified_by_user=trip.trip_journey.is_verified_by_user,
         )
         natpac_responses.append(natpac)
 
     return natpac_responses
 
 
+@router.get("/verified_trips")
+def percentage_of_verified_trips(db: db_dependency):
+    stmt = select(func.count()).select_from(Trip)
+    total_count = db.execute(stmt).scalar_one()
+    stmt = (
+        select(func.count())
+        .select_from(Trip)
+        .where(Trip.trip_journey.is_verified_by_user == True)
+    )
+    true_count = db.execute(stmt).scalar_one()
+
+    return {"Percentage": (true_count / total_count) * 100}
