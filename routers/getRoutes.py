@@ -182,7 +182,7 @@ def get_all_trips(db: db_dependency):
     return natpac_responses
 
 
-@router.get("/verified_trips")
+@router.get("/percentage/verified_trips")
 def percentage_of_verified_trips(db: db_dependency):
     stmt = select(func.count()).select_from(Trip)
     total_count = db.execute(stmt).scalar_one()
@@ -198,3 +198,20 @@ def percentage_of_verified_trips(db: db_dependency):
         return {"Percentage": 0.0}
 
     return {"Percentage": (true_count / total_count) * 100}
+
+@router.get("/percentage/{mode_name}")
+def percentage_of_mode(mode_name:str, db: db_dependency):
+    stmt = select(func.count()).select_from(Trip)
+    total_count = db.execute(stmt).scalar_one()
+    stmt = (
+        select(func.count())
+        .select_from(Trip)
+        .join(TripMode, TripMode.id == Trip.mode_id)
+        .where(TripMode.mode_name == mode_name.upper())
+    )
+    mode_count = db.execute(stmt).scalar_one()
+
+    if total_count == 0:
+        return {"Percentage": 0.0}
+    return {"Percentage": (mode_count / total_count) * 100}
+
