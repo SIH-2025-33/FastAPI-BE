@@ -113,8 +113,8 @@ def get_all_journeys(user_id: int, db: db_dependency):
             id=journey.id,
             origin=journey.origin,
             destination=journey.destination,
-            start_time=journey.start_time,
-            end_time=journey.end_time,
+            start_time=str(journey.start_time),
+            end_time=str(journey.end_time),
             purpose=journey.purpose,
             is_verified_by_user=journey.is_verified_by_user,
         )
@@ -134,8 +134,8 @@ def get_all_journeys_for_NATPAC(db: db_dependency):
             id=journey.id,
             origin=journey.origin,
             destination=journey.destination,
-            start_time=journey.start_time,
-            end_time=journey.end_time,
+            start_time=str(journey.start_time),
+            end_time=str(journey.end_time),
             purpose=journey.purpose,
             is_verified_by_user=journey.is_verified_by_user,
         )
@@ -170,8 +170,8 @@ def get_all_trips(db: db_dependency):
             journey_id=trip.journey_id,
             origin=origin_base,
             destination=dest_base,
-            start_time=trip.start_time,
-            end_time=trip.end_time,
+            start_time=str(trip.start_time),
+            end_time=str(trip.end_time),
             mode=trip.mode.mode_name,
             distance_travelled=trip.distance_travelled,
             co_travellers=trip.co_travellers,
@@ -199,8 +199,9 @@ def percentage_of_verified_trips(db: db_dependency):
 
     return {"Percentage": (true_count / total_count) * 100}
 
+
 @router.get("/percentage/{mode_name}")
-def percentage_of_mode(mode_name:str, db: db_dependency):
+def percentage_of_mode(mode_name: str, db: db_dependency):
     stmt = select(func.count()).select_from(Trip)
     total_count = db.execute(stmt).scalar_one()
     stmt = (
@@ -213,5 +214,5 @@ def percentage_of_mode(mode_name:str, db: db_dependency):
 
     if total_count == 0:
         return {"Percentage": 0.0}
-    return {"Percentage": (mode_count / total_count) * 100}
 
+    return {"Percentage": (mode_count / total_count) * 100}

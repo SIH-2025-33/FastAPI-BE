@@ -45,8 +45,8 @@ class JourneyBase(BaseModel):
 
 
 class LocationBase(BaseModel):
-    latitude: str
-    longitude: str
+    latitude: float
+    longitude: float
     name: str
 
     model_config = ConfigDict(from_attributes=True)
