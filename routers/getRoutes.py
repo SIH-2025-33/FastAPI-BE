@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import select, and_, func
 
 from database import get_database
-from models import User, Trip, TripMode, Journey
-from baseModel import JourneyBase, NatpacResponseBase, LocationBase
+from models import User, Trip, TripMode, Journey, Complaint
+from baseModel import JourneyBase, NatpacResponseBase, LocationBase, ComplaintBase
 
 db_dependency = Annotated[Session, Depends(get_database)]
 router = APIRouter(prefix="/get", tags=["get"])
@@ -216,3 +216,25 @@ def percentage_of_mode(mode_name: str, db: db_dependency):
         return {"Percentage": 0.0}
 
     return {"Percentage": (mode_count / total_count) * 100}
+
+
+@router.get("/complaints", response_model=List[ComplaintBase])
+def get_all_complaints(db: db_dependency):
+    complaints = []
+
+    stmt = select(Complaint)
+    _complaints = db.execute(stmt).scalars().all()
+
+    for _complaint in _complaints:
+        complaint = ComplaintBase(
+            user_id=_complaint.id,
+            location_lat=_complaint.location_lat,
+            location_lon=_complaint.location_lon,
+            description=_complaint.description,
+            category=_complaint.category,
+            timestamp=str(_complaint.timestamp),
+            status=_complaint.status,
+        )
+        complaints.append(complaint)
+    
+    return complaints

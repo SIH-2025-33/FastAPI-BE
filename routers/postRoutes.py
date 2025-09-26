@@ -179,21 +179,22 @@ def add_trip(user_id: int, timestamp: str, db: db_dependency):
 
 
 @router.post("/api_required_data")
-def create_api_required_data(tripData: TripRequestBase, db: db_dependency):
-    data = DataCollector(
-        user_id=tripData.user_id,
-        latitude=tripData.latitude,
-        longitude=tripData.longitude,
-        speed=tripData.speed,
-        timestamp=datetime.fromisoformat(tripData.timestamp),
-    )
-
-    try:
-        db.add(data)
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An error occurred: {str(e)}",
+def create_api_required_data(tripDatas: List[TripRequestBase], db: db_dependency):
+    for tripData in tripDatas:
+        data = DataCollector(
+            user_id=tripData.user_id,
+            latitude=tripData.latitude,
+            longitude=tripData.longitude,
+            speed=tripData.speed,
+            timestamp=datetime.fromisoformat(tripData.timestamp),
         )
+
+        try:
+            db.add(data)
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"An error occurred: {str(e)}",
+            )
