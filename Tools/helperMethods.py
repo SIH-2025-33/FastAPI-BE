@@ -23,8 +23,8 @@ def get_location_name(latitude: float, longitude: float) -> str:
         url = "https://nominatim.openstreetmap.org/reverse"
         params = {
             "format": "json",
-            "lat": latitude,
-            "lon": longitude,
+            "lat": str(latitude),
+            "lon": str(longitude),
             "zoom": 18,
             "addressdetails": 1,
             "accept-language": "en",
